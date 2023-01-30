@@ -1,0 +1,137 @@
+---
+title: |
+  | ![](images/uniba-logo.png){width=3in}
+  |
+  |
+  | \textbf{MOE: Mixture Of Experts}
+  | Analisi della letterature e delle hierarchical MOE
+  |
+  | \Large Modellazione Statistica - Data Science
+  | 
+author: "Ivan Diliso - 761053"
+header-includes:
+- \usepackage[italian]{babel}
+- \setcounter{secnumdepth}{3}
+- \setcounter{tocdepth}{3}
+- \usepackage{graphicx}
+- \usepackage{float}
+- \usepackage{enumitem}
+- \usepackage{amsfonts}
+- \usepackage{amsmath}
+- \usepackage{hyperref}
+- \hypersetup{ colorlinks, citecolor=black, filecolor=black, linkcolor=black, urlcolor=black
+  }
+output:
+  pdf_document: default
+  html_document:
+  html_notebook: default
+  
+knit: (function(inputFile, encoding) {
+      out_dir <- "docs";
+      rmarkdown::render(inputFile,
+                        encoding=encoding,
+                        output_dir=file.path(dirname(inputFile), out_dir))})
+---
+
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Ricerca iniziale delle informazioni}
+
+MOE studiati nel campo delle reti neurali rispetto ad altri metodi ensemble come combining classifiers e ensemble of weak learners. Si utilizza un metodo dividi et impera per addestrare una serie di modelli parametrici e unirli per avere una soluzione. Se nei classici ensemble ogni learner è addestrato sullo stesso task in ME utilizza il divide et impera per dividere un task complesso in sottotask e ogni esperto è addestrato su task differenti, il modello di gating serve ad unire le soluzioni. A differernza dei modelli ensemble non c'è la necessità di rendere i learner individuali diversi in quanto ogni learner è addestrato per un task diverso. Il problema da risolvere è infatti trovare una divisione naturale dei dati. Una metodologia base è di targettare ogni esperto ad una diversa distribuzine specificata dalla funzione di gating, rispetto che apprendere la distribuzione originale dei dati.
+
+\paragraph{Descrizione} Tecnica di ensemble learning
+\paragraph{Funzionamento di base} Decompongo il task del modello predittivo in più sotto task, addestrare un esperto di quello specifico task su ogni task per poi sviluppare un gating model in grado di apprendere che esperto richiamare in base all’input e come combinare le predizioni. Posso suddividere il feature space di input in più feature space e addestrare un modello su ognuno di essi. Approccio divide et impera. I problemi possono essere sovrapponibili, non sovrapponibili e esperti su problemi simili collegati tra loro possono contribuire agli esempi che sono fuori dalla loro area di esperienza.
+
+Questo approccio associa quindi un diverso peso ad ogni esperto, questa tecnica può essere vista come una forma di voting dei modelli ensemble, dove però la capacità di voto può cambiare al variare dell'input. 
+
+I pesi determinati dal gating network sono assegnati dinamicamente al variare dell'input, MOE quindi apprende che porizone del feature space è learned da ogni esperto dell'ensemble. I classificatore individuali sono addestrati per diventare esperti in una pozione del featrue space. La funzinoe di gating quindi selezinoe che classificatore, pesato con la sua expertise utilizzare per ogni istanza.
+
+
+
+\begin{itemize}
+\item POOLING: Utilizzo solo il classificatore con il peso più alto
+\item COMBINING: Utilizzo una somma pesata degli output di tutti i classificatori
+
+\end{itemize}
+
+
+\section{Dettagli tecnici}
+
+Combinazione dei modelli, tipologia multi expert (diversi learner che lavorano in parallelo) con approccio locale (learner selection) si utilizza un modello di gating che guarda l’input e sceglie che modello è responsabile per generare l’output.
+
+
+
+Sia $x \in \mathbb{R}^n$ vettore di input e si $T$ il numero di esperti modello e $h_1, \dots, h_T$ gli esperti del modello e $y$ variabile target. Dati $W_i$ parametri dell'i-esimo esperto, questo prova ad approssimare la distribuzione di $y$
+\[
+h_i(y|x; W_i)
+\]
+
+
+La funzione di gating produce un set di coefficenti the pesano il contributo degli esperti, sia $v_i$ vettore dei pesi della funzione di gating relativa all'i-esimo esperto e $\alpha$ paramatro dell modello di gating, insieme dei pesi relativi ad ogni espeto, il set di coefficenti prodotti dal gating:
+
+\[
+\pi_i(x; \alpha) : \sum_{i=1}^{T} \pi_i(x; \alpha) = 1
+\]
+Sulla base di queste probabilità partizioniamo lo spazio di input, diverse partizioni appartengono a diversi esperti. L'output del modello sarà quindi:
+
+\[
+H(y |x; \psi) = \sum_{i=1}^{T} \pi_i(x; \alpha) \cdot h_i(y|x; W_i)
+\]
+
+Nella fase di training il valore $\pi_i(x; \alpha)$ indica la probabilità che l'istanza $x$ appaia nel traning set dell'i-esimo esperto. Mentre nella fase di testing definisce il contributo che $h_i$ da alla predizione finale.L'output della funzione di gating può essere espresso tramite una softmax
+
+\[
+\pi_i(x; \alpha) = \frac{e^{v_i}x}{\sum_{l=1}^{k}e^{v_l}x} 
+\]
+
+
+\subsection{Apprendimento}
+Può avvenire tramite:
+
+\begin{itemize}
+  \item GRADIENT DESCENT
+  \item EXPECTATION MAXIMIZATION
+\end{itemize}
+
+\subsection{Hierarchical Mixture of Experts}
+Rimpiazzo ogni esperto con un sisteam completo MOE in modo ricorsivo. Si decide la profondità della ricorsione, il tipo di esperto e il tipo di modello di gating. Questo sviluppo ricorsivo crea una struttura ad albero. Può essere interpretato come un albero di decisione con i gating model che definiscono i nodi di decisione. Questa tipologia di albero viene definita "soft decision tree" in quanto i gating model ritornano una distribuzione di probabilità sugli esperti vengono quindi esplorate tutte le path dell'albero con differenti probabilità predendo poi una somma pesata a livello di foglie dove il prodotto è uguale al prodotto dei valori di gating di ogni path per arrivare allla foglia. In questa tipologia di apprendimento ogni nodo implementa una modello lineare (o regressione logistica) invece del valore costante di un albero CART. Nodi terminali chiamati esperti e nodi non terminali sono i nodi di gating. L'idea è che ogni esperto da una opinione sulla predizinoe e queste sono combinate dal modello di gating.
+
+\paragraph{Vantaggi} Le boundaries tra regioni di foglie sono non sono più "hard" ma c'è una transizione graduale da una all'altra, portatndo ad uno smoothing della risposta. 
+
+L'uso di soft split permette di catturare situazioni in cui la transizione da una risposta alta a bassa è graduale. 
+
+
+\newpage
+\begin{thebibliography}{9}
+
+    \bibitem{esl} 
+    Hastie, T., Tibshirani, R., \& Friedman, J. (2009). 
+    The elements of statistical learning: data mining, 
+    inference, and prediction. Springer Science \& Business Media.
+    
+    \bibitem{iml} 
+    Alpaydin, E. (2020). Introduction to machine learning. MIT press.
+    
+    \bibitem{efa}
+    Zhou, Z. H. (2012). Ensemble methods: foundations and algorithms. CRC press.
+    
+    \bibitem{ema}
+    Zhang, C., \& Ma, Y. (Eds.). (2012). Ensemble machine learning: methods and applications. Springer Science \&         Business Media.
+    
+    \bibitem{pri}
+    Bishop, C. M., \& Nasrabadi, N. M. (2006). Pattern recognition and machine learning (Vol. 4, No. 4, p. 738). New York: springer.
+
+    
+\end{thebibliography}
+
+
+
+
+
+
+
+
+
