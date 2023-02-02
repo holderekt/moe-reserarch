@@ -42,6 +42,25 @@ knit: (function(inputFile, encoding) {
 
 MOE studiati nel campo delle reti neurali rispetto ad altri metodi ensemble come combining classifiers e ensemble of weak learners. Si utilizza un metodo dividi et impera per addestrare una serie di modelli parametrici e unirli per avere una soluzione. Se nei classici ensemble ogni learner è addestrato sullo stesso task in ME utilizza il divide et impera per dividere un task complesso in sottotask e ogni esperto è addestrato su task differenti, il modello di gating serve ad unire le soluzioni. A differernza dei modelli ensemble non c'è la necessità di rendere i learner individuali diversi in quanto ogni learner è addestrato per un task diverso. Il problema da risolvere è infatti trovare una divisione naturale dei dati. Una metodologia base è di targettare ogni esperto ad una diversa distribuzine specificata dalla funzione di gating, rispetto che apprendere la distribuzione originale dei dati.
 
+
+SOFT PARTITIONING DEI DATI
+
+\begin{itemize}
+\item Partizionamento INPLICITO: Feature space viene diviso implicitamente in sottospazi tramite una funzione di errore, gli esperti gli esperti si specializzano in ogni subspace. Approccio competitivo MILE (Mixture of the implicitlò localised experts)
+
+\item Partizionamento ESPLICITO: Si utilizza un algoritmo di clustering per il partizionamento dei dati, questi vengono poi assegnati ad un esperto MELE (MIxture of expliticly localised experts)
+
+\end{itemize}
+
+\subsection{Differenze con altri metodi}
+Altri metodi producono esperti unbiased con stime di errori non correlati. ME produce esperti biased con stime correalte negativamente.
+
+Necessaria conoscenza pregressa di una divisione dei dati IL DATASET DEVE ESSERE DIVISIBILE.
+
+
+
+Nella version convenzionale 
+
 \paragraph{Descrizione} Tecnica di ensemble learning
 \paragraph{Funzionamento di base} Decompongo il task del modello predittivo in più sotto task, addestrare un esperto di quello specifico task su ogni task per poi sviluppare un gating model in grado di apprendere che esperto richiamare in base all’input e come combinare le predizioni. Posso suddividere il feature space di input in più feature space e addestrare un modello su ognuno di essi. Approccio divide et impera. I problemi possono essere sovrapponibili, non sovrapponibili e esperti su problemi simili collegati tra loro possono contribuire agli esempi che sono fuori dalla loro area di esperienza.
 
@@ -81,27 +100,95 @@ Sulla base di queste probabilità partizioniamo lo spazio di input, diverse part
 H(y |x; \psi) = \sum_{i=1}^{T} \pi_i(x; \alpha) \cdot h_i(y|x; W_i)
 \]
 
-Nella fase di training il valore $\pi_i(x; \alpha)$ indica la probabilità che l'istanza $x$ appaia nel traning set dell'i-esimo esperto. Mentre nella fase di testing definisce il contributo che $h_i$ da alla predizione finale.L'output della funzione di gating può essere espresso tramite una softmax
+Nella fase di training il valore $\pi_i(x; \alpha)$ indica la probabilità che l'istanza $x$ appaia nel traning set dell'i-esimo esperto. Mentre nella fase di testing definisce il contributo che $h_i$ da alla predizione finale.L'output della funzione di gating può essere espresso tramite una softmax 
 
 \[
 \pi_i(x; \alpha) = \frac{e^{v_i}x}{\sum_{l=1}^{k}e^{v_l}x} 
 \]
-
+usata sia per classificazione che per regressione.
 
 \subsection{Apprendimento}
+
+Gating network alloca dati di training a uno o più esperti e se  l'output è incorretto  il cambiamento dei pesi e localizzato su questo esperto. Locale in quasnto i pesi di un esperto sono disaccoppiati dai pesi di un altr oesperto. 
+
+
 Può avvenire tramite:
 
 \begin{itemize}
-  \item GRADIENT DESCENT
-  \item EXPECTATION MAXIMIZATION
+  \item GRADIENT DESCENT: Particolarmente utile con i mixuture of multi layer perceptron experts. Addestramento utilizzando questa funzione tende ad assegnare un dato di training ad ogni esperto
+  \item EXPECTATION MAXIMIZATION: Metodi ME cercano di risolvere due task, dato un esperto trovare la funzione di gating ottimale e data la funzinoe di gating addestrare ogni esperto a massimizzare le performance sulla distribuzione assegnata dalla funzione di gating, questo rende naturale l'utilizzo di un algoritmo di expectation maximization 
 \end{itemize}
 
+\subsection{Funzioni di errore}
+
+\[
+E = \lVert y - \sum_{j}g_j O_j \rVert^2
+\]
+
+I pesi di ogni esperto sono cosi aggiornati sulla base di un errore ensemble totale che sulla base dell'errore dello specifico esperto. Questo permette un alto livello di cooperazione e tende a sfruttare quasi tutti gli esperti del modello (nessun esperto non contribuisce al problema) In questa funzione di errore si assume che  che l'output del sistema sia una combinazione lineare degli output degli esperti locali,  con il gating che determina la proporzione. Strong coupling dei pesi.
+
+\[
+E =   \sum_{j}g_j \lVert y -O_j \rVert^2
+\]
+Pesi aggiornati su errori singoli, non assicura la localizzazione degli esperti. 
+
+\subsection{Errore con gaussian mixture}
+Una misura di errore che tiene conto di entrambi i fattori è basata sulla negative log probability di generare l'output vector desiderato, se si assume una mixture di modelli gaussiani con $\sum$ matrice di covarianza
+
+\[
+E_{ME} = -log\sum_{j}g_j e^{-\frac{1}{2} (y- O_j)^T \sum^{-1}(y-O_j)}
+\]
+L'apprendimento di ogni esperto avviene sull'errore individuale, ma l'aggiornamento dei pesi per ogni esperto è propozionale all suo rateo di errore sull'errore totale. Questo permette la localizzazione degli esperti nei sotto spazio delel feature corrispondente 
+
+\subsection{Errore con MLP-Experts}
+Ogni esperto è un MLP con un hidden layer che produce un output $O_j$ in funzione dell'inpnt con funzione di attivazione sigmoidale. Apprendimento con backpropagation massimizzando la log likelihood dei dati i parametri.
+
 \subsection{Hierarchical Mixture of Experts}
-Rimpiazzo ogni esperto con un sisteam completo MOE in modo ricorsivo. Si decide la profondità della ricorsione, il tipo di esperto e il tipo di modello di gating. Questo sviluppo ricorsivo crea una struttura ad albero. Può essere interpretato come un albero di decisione con i gating model che definiscono i nodi di decisione. Questa tipologia di albero viene definita "soft decision tree" in quanto i gating model ritornano una distribuzione di probabilità sugli esperti vengono quindi esplorate tutte le path dell'albero con differenti probabilità predendo poi una somma pesata a livello di foglie dove il prodotto è uguale al prodotto dei valori di gating di ogni path per arrivare allla foglia. In questa tipologia di apprendimento ogni nodo implementa una modello lineare (o regressione logistica) invece del valore costante di un albero CART. Nodi terminali chiamati esperti e nodi non terminali sono i nodi di gating. L'idea è che ogni esperto da una opinione sulla predizinoe e queste sono combinate dal modello di gating.
+Rimpiazzo ogni esperto con un sisteam completo MOE in modo ricorsivo. Si decide la profondità della ricorsione, il tipo di esperto e il tipo di modello di gating. Questo sviluppo ricorsivo crea una struttura ad albero. Può essere interpretato come un albero di decisione con i gating model che definiscono i nodi di decisione. Questa tipologia di albero viene definita "soft decision tree" in quanto i gating model ritornano una distribuzione di probabilità sugli esperti vengono quindi esplorate tutte le path dell'albero con differenti probabilità predendo poi una somma pesata a livello di foglie dove il prodotto è uguale al prodotto dei valori di gating di ogni path per arrivare allla foglia. In questa tipologia di apprendimento ogni nodo implementa una modello lineare (o regressione logistica) invece del valore costante di un albero CART. Nodi terminali chiamati esperti e nodi non terminali sono i nodi di gating. 
+
+
+L'idea è che ogni esperto da una opinione sulla predizinoe e queste sono combinate dal modello di gating. Seguendo il formalismo definito in precedenza e finito $I$ numero di nodi connessi al gate al livello di radice e $J_i$ numero di nodi connessi all'i-esimo nodo gate, $\pi_i$ ouput del gata al livello di radice e $\pi_{j|i}$ output dell j-esimo gate connetto all'i-esimo gate
+\[
+H(y |x; \psi) = \sum_{i=1}^{I} \pi_i(x; \alpha_{\pi_i}) \cdot \sum_{j=1}^{J_i} \pi_{j|i}(x; \alpha_{\pi_{j|i}}) h_{ij}(y|x; W_{ij})
+\]
+
+Boundaries soft, dati anche in più boundaries. I dati sono dati in input agli esperti che producono dei vettori di output che procedono nell'albero verso alto, vengono moltiplicati tra loro e sommati seguendo i vari livelli dell'albero.  
+\[
+
+
+\]
 
 \paragraph{Vantaggi} Le boundaries tra regioni di foglie sono non sono più "hard" ma c'è una transizione graduale da una all'altra, portatndo ad uno smoothing della risposta. 
 
 L'uso di soft split permette di catturare situazioni in cui la transizione da una risposta alta a bassa è graduale. 
+\subsection{Model selection}
+Ottimizzazione di iperparamtrei, depth e connessioni dell'albero. Simile alla model selection applicata ad alberi, modificata la funzione di valutazione di un branch dell'albero.
+
+\begin{itemize}
+\item Modelli growing: aggiungo layer all'albero e determno  la profondità e numero di esperti
+\item Pruning modelli: Riduzione dei requirement computazionali. Parametri costanti ma considero le path più probabili. Pruno i banch meno usati
+\end{itemize}
+
+
+\subsection{Applicazioni pratiche}
+Dove è utilizzato? DA FARE
+
+
+
+
+
+
+
+
+
+
+\section{MOE e HMOE in R}
+MEclusternet, flexmix, mixreg, mixtools, flexCWM, meteorist
+
+\subsection{MEteorits: Mixtures-of-ExperTs modEling for cOmplex and non-noRmal dIsTributions}
+
+\subsection{mixtools: Tools for Analyzing Finite Mixture Models}
+
 
 
 \newpage
@@ -123,6 +210,25 @@ L'uso di soft split permette di catturare situazioni in cui la transizione da un
     
     \bibitem{pri}
     Bishop, C. M., \& Nasrabadi, N. M. (2006). Pattern recognition and machine learning (Vol. 4, No. 4, p. 738). New York: springer.
+    
+    \bibitem{litera}
+    Masoudnia, S., \& Ebrahimpour, R. (2014). Mixture of experts: a literature survey. The Artificial Intelligence Review, 42(2), 275.
+    
+    \bibitem{amiim}
+    Jacobs, R. A., Jordan, M. I., Nowlan, S. J., \& Hinton, G. E. (1991). Adaptive mixtures of local experts. Neural computation, 3(1), 79-87.
+    
+    
+    \bibitem{twenty}
+    Yuksel, S. E., Wilson, J. N., \& Gader, P. D. (2012). Twenty years of mixture of experts. IEEE transactions on neural networks and learning systems, 23(8), 1177-1193.
+    
+    
+    \bibitem{hme}
+    
+    Jordan, M. I., \& Jacobs, R. A. (1994). Hierarchical mixtures of experts and the EM algorithm. Neural computation, 6(2), 181-214.
+    
+    \bibitem{models}
+    
+    Gormley, I. C.,   \& Frühwirth-Schnatter, S. (2019). Mixture of experts models. In Handbook of mixture analysis (pp. 271-307). Chapman and Hall/CRC.
 
     
 \end{thebibliography}
