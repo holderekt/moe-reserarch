@@ -3,7 +3,7 @@ title: |
   | ![](images/uniba-logo.png){width=3in}
   |
   | \textbf{MOE: Mixture Of Experts}
-  | Analisi della letteratura e delle Hierarchical MOE
+  | Analisi della letteratura e clustering su CNEOS - Asteroids
   |
   | \Large Modellazione Statistica - Data Science
   | 
@@ -46,19 +46,19 @@ editor_options:
 \subsection{Introduzione}
 
 
-Le Mixture of Experts (MOE) è una tecnica di enseble learning di
+La Mixture of Experts (MOE) è una tecnica di ensemble learning di
 tipologia multi expert (diversi learner che lavorano in parallelo) con
 approccio locale (learner selection) applicabile in constesti di
 apprendimento supervisionato, come classificazione e regressione, e non
 supervisionato come clustering. Nascono nel campo delle reti neurali
-nell'ambito dei comining classifiers e ensemble of weak learners. I
-modelli MOE utilizzano la metodologia dividi et impera per addestrare
+nell'ambito dei combining classifiers e ensemble of weak learners. I
+modelli MOE utilizzano la metodologia "\textbf{divide et impera}" per addestrare
 una serie di modelli parametrici e unire i loro ouput per fornire il
-risultato finale, questa tipologia di modelli permette di dividere un
+risultato finale. Questa tipologia di modelli permette di dividere un
 task complesso in sottotask, addestrando i vari modelli dell'esempble su
 un sottotask diverso. Nella terminologia delle MOE ogni modello
-addestrato è chiamato \textbf{esperto}. La caratteristica fondamentale
-che distingue le MOE è l'utilizzo di un modello ad hoc chiamato
+addestrato nell'ensemble è chiamato \textbf{esperto}. La caratteristica fondamentale
+che distingue le MOE è l'utilizzo di un modello chiamato
 \textbf{gating} che permette di unire le soluzioni degli esperti ed
 assegnare ad ognuno di essi il peso che la loro soluzione avrà nel
 comporre la soluzione finale.
@@ -70,10 +70,10 @@ comporre la soluzione finale.
 \caption{MOE con 3 esperti}
 \end{figure}
 
-A differenze di altre metodologie ensemble che producono esperti unbiased con
+A differenza di altre metodologie ensemble che producono esperti unbiased con
 stime di errore non correlate, MOE produce esperti biased con stime correlate
 negativamente. Con questa tipologia di modelli è necessaria una conoscenza pregressa
-di una divisinoe dei dati, è necessario quindi che il dataset sia divisibile.
+di una divisione dei dati, è necessario quindi che il dataset sia divisibile.
 
 \subsection{Experts}
 
@@ -81,11 +81,11 @@ Gli esperti sono i vari modelli addestrati nell'esemble MOE, ogni
 esperto andrà a specializzasi nel risolvere uno specifico sottoproblema,
 questo si concretizza nello specializzarsi su specifiche porzioni del
 feature space. I sottotask creati infatti possono essere sovrapponibili
-(più esperti condividono alcune feature) non sovrapponibili (ogni
+(più esperti condividono alcune feature) o non sovrapponibili (ogni
 esperto viene addestrato su un feature space diverso). Ogni esperto
-quindi contribuisce in modo diverso nella creazione dell'output finale.
+contribuisce quindi in modo diverso nella creazione dell'output finale.
 Nelle MOE infatti non è necessario rendere i vari learner dell'esemble
-diverse in quanto naturalmente questi lavoreranno su task diversi. Il
+diversi in quanto naturalmente questi lavoreranno su task diversi. Il
 problema da risolvere è infatti trovare una divisione naturale dei dati,
 questo problema è risolto dall'utilizzo del modello di gating. Per il
 partizionamento del feature space, possono essere utilizzate due
@@ -93,7 +93,7 @@ metodologie:
 
 
 \begin{itemize}
-  \item Partizionamento \textbf{inplicito}: Feature space viene diviso implicitamente in sottospazi tramite una funzione di errore. L'utilizzo dell'apprendimento tramite backpropagation e il partizionamento dei dati fornito dalla funzione di gating permeette agli esperti di specializzarsi in diversi sottospazi del feature space. In questo caso di parla di  approccio \textbf{MILE} (Mixture of the Implicitly Localised Experts)
+  \item Partizionamento \textbf{implicito}: Feature space viene diviso implicitamente in sottospazi tramite una funzione di errore. L'utilizzo dell'apprendimento tramite backpropagation e il partizionamento dei dati fornito dalla funzione di gating permette agli esperti di specializzarsi in diversi sottospazi del feature space. In questo caso di parla di  approccio \textbf{MILE} (Mixture of the Implicitly Localised Experts)
 
   \item Partizionamento \textbf{esplicito}: Si utilizza un algoritmo di clustering per il partizionamento dei dati, questi vengono poi assegnati ad un esperto. In questo caso si parla di un approccio \textbf{MELE} (Mixture of Expliticly Localised Experts)
 
@@ -101,7 +101,7 @@ metodologie:
 
 Un esperto può essere qualsiasi modello di apprendimento, nella
 formulazione originale gli esperti prendono la forma di modelli di
-logistic regression, ma possono essere anche implementati come
+\textbf{logistic regression}, ma possono essere anche implementati come
 percettroni, multi layer perceptron, gaussian mixture, reti neurali
 profonde (in questo caso di parla di Deep Mixture of Experts) etc. etc.
 
@@ -121,7 +121,7 @@ utilizzata in due modi:
 \end{itemize}
 
 Questo approccio associa quindi un diverso peso ad ogni esperto, questa
-tecnica può essere vista come una forma di voting dei modelli ensemble,
+tecnica può essere vista come una forma di \textbf{voting} dei modelli ensemble,
 dove però la capacità di voto può cambiare al variare dell'input. Dato
 che la distribuzione è appresa dinamicamente dal modello di gating sulla
 base dell'input questa apprende che input assegnare ad ogni esperto
@@ -133,20 +133,20 @@ definito \textbf{hard} se si utilizza una tecnica di pooling,
 
 \subsection{Hierarchical Mixture of Experts}
 
-Le Hierrarchical Mixture of Experts (HMOE) sono una estensione dei modelli MOE in cui rimpiazzo ogni esperto con un sistema completo MOE in modo ricorsivo creando una struttura ad albero in cui i nodi interni saranno le varie funzioni di gating sviluppate in modo gerarchico, e i nodi foglia conterranno gli esperti. Può essere interpretato come un albero di decisione in cui i nodi interni (gating) fungono da nodi di decisione e la decisione finale è un singolo nodo foglia (in caso di pooling) o una combinazione pesata dei nodi foglia (in caso di combining). Se nei modelli MOE un parametro importante per l'ottimizzazione del modello è il numero di esperti da utilizzare in questo caso il parametro è la profondità della ricorsione, che determinerà il numero di esperti utilizzati. 
+Le Hierarchical Mixture of Experts (HMOE) sono una estensione dei modelli MOE in cui ogni esperto viene rimpiazzato con un sistema completo MOE in modo ricorsivo creando una \textbf{struttura ad albero}. Nell'albero HMOE i nodi interni saranno le varie funzioni di gating sviluppate in modo gerarchico, e i nodi foglia conterranno gli esperti. Può essere interpretato come un albero di decisione in cui i nodi interni (gating) fungono da nodi di decisione e la decisione finale è un singolo nodo foglia (in caso di pooling) o una combinazione pesata dei nodi foglia (in caso di combining). Se nei modelli MOE un parametro importante per l'ottimizzazione del modello è il numero di esperti da utilizzare in questo caso il parametro è la profondità della ricorsione, che determinerà il numero di esperti utilizzati. 
 
 
 
 \begin{figure}
 \centering
 \includegraphics[width=9.5cm]{./images/hmoe.png}
-\caption{HMOE con con profondità 2}
+\caption{HMOE con profondità 2}
 \end{figure}
 
 
 
-Questa tipologia di albero, con gating di tipo combining viene definita \textbf{soft decision tree} in quanto
-a differenze degli alberi di decisione hard, vengono utilizzate le distribuzioni di probabilità generate dai nodi gating per esplorare tutti i possibili percorsi dell'albero, per poi effettuare una somma pesata a livello di foglie, dove ogni peso è uguale al prodotto dei valor idi gating di ogni path per arrivare alla foglia. A differenza dei modelli CART (Classification And Regression Trees) dove ogni nodo contiene un valore costante per la decisione, nei modelli HMO ogni nodo implementa un modello lineare (o di regressione logistica). L'uso di questa formulazione soft permette di catturare situazioni in cui la transizione da una risposta alta ad una bassa è graduale.
+Questa tipologia di albero, con gating di tipo combining, viene definita \textbf{soft decision tree} in quanto
+a differenza degli alberi di decisione hard, vengono utilizzate le distribuzioni di probabilità generate dai nodi gating per esplorare tutti i possibili percorsi dell'albero, per poi effettuare una somma pesata a livello di foglie, dove ogni peso è uguale al prodotto dei valori di gating di ogni path per arrivare alla foglia. A differenza dei modelli CART (Classification And Regression Trees) dove ogni nodo contiene un valore costante per la decisione, nei modelli HMO ogni nodo implementa un modello lineare (o di regressione logistica). L'uso di questa formulazione soft permette di catturare situazioni in cui la transizione da una risposta alta ad una bassa è graduale.
 
 
 
@@ -158,7 +158,7 @@ a differenze degli alberi di decisione hard, vengono utilizzate le distribuzioni
 Sia $x \in \mathbb{R}^n$ vettore di input, sia $T$ il numero di esperti
 modello, $h_1, \dots, h_T$ gli esperti del modello e $y$ variabile
 target. Dati $W_i$ parametri dell'i-esimo esperto, l'obiettivo del modello è
-approssimare la distribuzione di $y$ sulla base dei dati di training 
+approssimare la distribuzione di $y$ sulla base dei dati di training:
 
 $$
 h_i(y|x; W_i)
@@ -167,7 +167,7 @@ $$
 La funzione di gating produce un set di coefficenti the pesano il
 contributo degli esperti, sia $v_i$ vettore dei pesi della funzione di
 gating relativa all'i-esimo esperto e sia $\alpha$ insieme dei paramatri dell modello di
-gating (insieme dei pesi relativi ad ogni espeto). Essendo una distribuzione di probabilità la somma dei coefficenti su tutti gli esperti dovrà essere uguale a 1. Definiamo quindi il set di coefficenti generati dalla funzione di gating, sull'i-esimo esperto, dato l'insieme di parametri $\alpha$ come:
+gating (insieme dei pesi relativi ad ogni espeto). Essendo una distribuzione di probabilità, la somma dei coefficenti su tutti gli esperti dovrà essere uguale a 1. Definiamo quindi il set di coefficenti generati dalla funzione di gating, sull'i-esimo esperto, dato l'insieme di parametri $\alpha$ come:
 $$
 \pi_i(x; \alpha) : \sum_{i=1}^{T} \pi_i(x; \alpha) = 1
 $$ 
@@ -183,219 +183,417 @@ Nella fase di training il valore $\pi_i(x; \alpha)$ indica la
 probabilità che l'istanza $x$ appaia nel traning set dell'i-esimo
 esperto. Mentre nella fase di testing definisce il contributo che il modello $h_i$
 fornisce alla predizione finale. L'output della funzione di gating può essere
-espresso tramite una softmax:
+espresso tramite una softmax (utilizzata sia in casi di regressione che di classificazione):
 
 $$
 \pi_i(x; \alpha) = \frac{e^{v_i}x}{\sum_{l=1}^{k}e^{v_l}x} 
 $$ 
 
-usata sia per classificazione che per regressione.
 
 \subsection{Modello HMOE}
 
 Seguendo il formalismo definito in precedenza definiamo un modello HMOE di profondità 2. Definito $I$ numero di nodi connessi al nodo gating al livello di
 radice, $J_i$ numero di nodi connessi all'i-esimo nodo gating, $\pi_i$
-ougput del nodo gating al livello di radice e $\pi_{j|i}$ output dell j-esimo
+output del nodo gating al livello di radice e $\pi_{j|i}$ output dell j-esimo
 nodo gating connesso all'i-esimo nodo gating, l'ouput del modello HMOE sarà:
 
 $$
 H(y |x; \psi) = \sum_{i=1}^{I} \pi_i(x; \alpha_{\pi_i}) \cdot \sum_{j=1}^{J_i} \pi_{j|i}(x; \alpha_{\pi_{j|i}}) h_{ij}(y|x; W_{ij})
 $$
 
-Nella fase di apprendimento e testing i  dati sono dati in input agli esperti che producono dei vettori di output che procedono nell'albero verso alto (in direzione opposta rispetto ai modelli CART), vengono moltiplicati tra loro e sommati seguendo i vari livelli dell'albero.
+Nella fase di apprendimento e testing i  dati sono forniti in input agli esperti che producono dei vettori di output che procedono nell'albero verso l'alto seguendo la gerarchia fino al nodo gating radice, (in direzione opposta rispetto ai modelli CART). Gli ouput di ogni nodo vengono moltiplicati tra loro e sommati seguendo i vari livelli dell'albero.
 
 
 \subsection{Apprendimento}
 
-Gating network alloca dati di training a uno o più esperti e se l'output
-è incorretto il cambiamento dei pesi e localizzato su questo esperto.
-Locale in quasnto i pesi di un esperto sono disaccoppiati dai pesi di un
-altr oesperto.
-
-Può avvenire tramite:
+L'aggionamento dei pesi avviene sulla base dell'output del modello di gating, questo infatti alloca in maniera hard o soft i dati di training a uno o più esperti del modello, e in base all'errore sull output l'aggiornamento dei pesi avviene localizzato solo sugli esperti utilizzati. Si parla di aggiornamento locale in quanto i pesi di degli esperti sono disaccoppiati. In base alla tipologia di esperto e gating scelta l'aggiornamento dei pesi può avvenire tramite:
 
 
 \begin{itemize}
-  \item GRADIENT DESCENT: Particolarmente utile con i mixuture of multi layer perceptron experts. Addestramento utilizzando questa funzione tende ad assegnare un dato di training ad ogni esperto
-  \item EXPECTATION MAXIMIZATION: Metodi ME cercano di risolvere due task, dato un esperto trovare la funzione di gating ottimale e data la funzinoe di gating addestrare ogni esperto a massimizzare le performance sulla distribuzione assegnata dalla funzione di gating, questo rende naturale l'utilizzo di un algoritmo di expectation maximization 
+  \item \textbf{Discesa del gradiente}: Particolarmente utile con i \textbf{mixuture of multi layer perceptron experts}. Addestramento utilizzando questa funzione tende ad assegnare un dato di training ad ogni esperto.
+  \item \textbf{Expectation Maximization}: Modelli MOE cercano di risolvere due task, dato l'insieme di esperti trovare la funzione di gating ottimale per minimizzare l'errore, e, data la funzione di gating, addestrare ogni esperto a massimizzare le performance sulla distribuzione assegnata dalla funzione di gating, questo rende naturale l'utilizzo di un algoritmo di expectation maximization.
 \end{itemize}
 
 \subsection{Funzioni di errore}
+Per semplificare la lettura delle loss, definiamo $g_i$ output della funzione di gating per il i-esimo esperto e con $O_i$ ouput dell'i-esimo esperto:
 
 $$
-E = \lVert y - \sum_{j}g_j O_j \rVert^2
+g_i = \pi_i(x; \alpha)  \quad , \quad O_i = h_i(y|x; W_i)
 $$
 
-I pesi di ogni esperto sono cosi aggiornati sulla base di un errore
-ensemble totale che sulla base dell'errore dello specifico esperto.
-Questo permette un alto livello di cooperazione e tende a sfruttare
+\subsubsection{Loss generiche}
+Una prima misura di errore utilizzabile é:
+$$
+E_{\text{ensemble}} = \lVert y - \sum_{i}g_i O_i \rVert^2
+$$
+In questo caso i pesi di ogni esperto sono aggiornati sulla base di un errore
+ensemble totale. Questo permette un alto livello di cooperazione e tende a sfruttare
 quasi tutti gli esperti del modello (nessun esperto non contribuisce al
-problema) In questa funzione di errore si assume che che l'output del
+problema). In questa funzione di errore si assume che che l'output del
 sistema sia una combinazione lineare degli output degli esperti locali,
-con il gating che determina la proporzione. Strong coupling dei pesi.
+con il gating che determina la proporzione. Questo porta ad un forte accoppiamento dei pesi degli esperti. Una ulteriore misura di errore permette di aggiornare i pesi sulla base dell'errore del singolo esperto, 
+non viene assicurata in questo caso però la localizzazione degli esperti
 
 $$
-E =   \sum_{j}g_j \lVert y -O_j \rVert^2
-$$ Pesi aggiornati su errori singoli, non assicura la localizzazione
-degli esperti.
+E_{\text{single}} =   \sum_{i}g_i \lVert y -O_i \rVert^2
+$$ 
 
-\subsection{Errore con gaussian mixture}
+\subsubsection{Loss per Gaussian MOE}
 
 Una misura di errore che tiene conto di entrambi i fattori è basata
-sulla negative log probability di generare l'output vector desiderato,
-se si assume una mixture di modelli gaussiani con $\sum$ matrice di
-covarianza
+sulla negative log probability di generare l'output vector desiderato.
+Si assume una mixture di modelli gaussiani con $\Sigma$ matrice di
+covarianza:
 
 $$
-E_{ME} = -log\sum_{j}g_j e^{-\frac{1}{2} (y- O_j)^T \sum^{-1}(y-O_j)}
-$$ L'apprendimento di ogni esperto avviene sull'errore individuale, ma
-l'aggiornamento dei pesi per ogni esperto è propozionale all suo rateo
+E_{GMOE} = -log\sum_{i}g_i e^{-\frac{1}{2} (y- O_i)^T \Sigma^{-1}(y-O_i)}
+$$ 
+L'apprendimento di ogni esperto avviene sull'errore individuale, ma
+l'aggiornamento dei pesi per ogni esperto è propozionale al suo rateo
 di errore sull'errore totale. Questo permette la localizzazione degli
-esperti nei sotto spazio delel feature corrispondente
+esperti nei corrispondenti sottospazi delle feature.
 
-\subsection{Errore con MLP-Experts}
+\subsubsection{Loss per Multi Layer Perceptron MOE}
 
-Ogni esperto è un MLP con un hidden layer che produce un output $O_j$ in
-funzione dell'inpnt con funzione di attivazione sigmoidale.
-Apprendimento con backpropagation massimizzando la log likelihood dei
-dati i parametri.
-
-
+Per questa loss si considerano esperti in forma di multi layer perceptron con un hidden layer che produce un output $O_i$ in funzione dell'input con funzione di attivazione sigmoidale. L'apprendimento avviene tramite backpropagation massimizzando la log likelihood dei dati di training dati i parametri del modello.
 
 \subsection{Model selection}
 
-Ottimizzazione di iperparamtrei, depth e connessioni dell'albero. Simile
-alla model selection applicata ad alberi, modificata la funzione di
-valutazione di un branch dell'albero.
+\subsubsection{Selezione su MOE}
 
+Nei modelli MOE definita la forma degli esperti e la tipologia di modello di gating l'iperparametro da ottimizzare per la model selection è il numero di esperti da generare, questo è particolamente importante nell'applicazione del clustering in quanto il numero di esperti equivale al numero di cluster che verranno generati dal modello.  Nella selezione del modello ottimale è possibile addestrare gli esperti o la funzione di gating esplicitamente su diversi sottospazi delle feature, in modo da trovare la combinazione che minimizzi l'errore. 
+
+\subsubsection{Selezione su HMOE}
+
+Nei modelli HMOE ci sono ulteriori parametri da ottimizzare quali la profondità e il numero di connessioni per ogni nodo. La model selection su questo tipoi di modelli è simile alle metodologie applicate ai modelli CART, in cui viene modificata la funzione di valutazione di un branch dell'albero. Possibili metodologie sono:
 
 \begin{itemize}
-\item Modelli growing: aggiungo layer all'albero e determno  la profondità e numero di esperti
-\item Pruning modelli: Riduzione dei requirement computazionali. Parametri costanti ma considero le path più probabili. Pruno i banch meno usati
+\item \textbf{Crescita}: Parto da un albero con un solo layer e procedo aumentando la profondità o il numero di connessioni.
+\item \textbf{Potatura}: Generato un albero ad alta profondità analizzo le distribuzioni di probabilità sui vari percorsi in modo da eliminare (potatura) i percorsi meno utilizzati. L'obiettivo è la riduzione dei requisiti computazionali.
+
 \end{itemize}
-
-
 
 
 \section{MOE e HMOE in R}
 
-MEclusternet, flexmix, mixreg, mixtools, flexCWM, meteorist
 
-\subsection{mixtools: Tools for Analyzing Finite Mixture Models}
+\subsection{\texttt{mixtools::hmeEM}}
 
-\subsection{MoEClust}
+Il package mixtools permette di analizzare mixture model finiti in contesti parametrici e semiparametrici. Nello specifico, la classe \texttt{hmeEM} implementa un modello HMOE per la regressione addestrato tramite algoritmo EM. Ad oggi (Febbraio 2023) la libreria non permette di creare alberi di profondità maggiore di 2 ma verranno implementati in versioni successive. Non è possibile modificare la tipologia di esperti o di gating. Utilizza un modello di gating softamx tramite combining mentre gli esperti sono modelli lineari generalizzati (GLM, generalizzazione della regressione classica che permette di modellare la relazione tra le variabili anche quando la distribuzione della variabile dipendente non è gaussiana o in casi di non linearità). Non sono supportati in maniera efficente dataset ad alta dimensionalità.
+
+
+\subsection{\texttt{MEteorits}}
+
+Il package MEteorits (Mixtures-of-ExperTs modEling for cOmplex and non-noRmal dIsTributions) contiene diverse implementazioni di mixture of experts per classificaizione e clustering di dati in situazioni di distribuzioni normali, skewed, e con dati corrotti o osservrazioni outlier. Tutti i modelli presenti sono implementati utilizzando regressione polinomiale per gli esperti e regressione logistica per il modello di gating, con possibilità di specificare il numero di esperti da utilizzare. Il principale svantaggio di questa libreria è che non permette di utilizzare dataset con dimensionalità maggiore di due, riducendo di molto l'applicabilità del modello a dataset reali. I modelli implementati sono:
+
+\begin{itemize}
+\item \texttt{emNMoE / emSNMoE}: Per distribuzioni normali con algoritmo EM o normali skewed con algoritmo ECM (Expectation Conditional Maximization).
+\item \texttt{emStMoE / emTMoE}: Per distribuzioni di student o student skewed con algoritmo ECM.
+\end{itemize}
+
+
+\subsection{\texttt{MoEClust}}
 
 La libreria MoEClust(Gaussian Parsimonious Clustering Models with Gating
 and Expert Network Covariates and a Noise Component) permette di
-addestrare mixture of expert gaussiane finite tramite algoritmo di
+addestrare mixture of expert gaussiane tramite algoritmo di
 ottimizzazione expectation maximization, l'utilizzo principale della
-libreria è il clustering.
+libreria è il clustering. 
 
-\section{Clutering asteroidi pericolosi che orbitano la terra}
 
-\subsection{Dataset}
-
+La particolarità di questa libreria è la possibilità di fornire diversi sottoinsiemi di feature ai modelli esperti e al modello di gating, implementando anche una funzione di model selection che permette di selezionare il modello migliore sulla base delle feature in input e del numero di esperti da generare. La libreria contiene anche tool per il clustering in contesti di dati molto rumorosi. Le principali funzioni sono:
 
 \begin{itemize}
-\item Neo Reference ID e Name
-\item Absolute magnitude
-\item Est Dia: Stima del diametro dell'asteroide, vengono fornite le misure di massimo e minimo in KM, M, Miles  e Feet. Feature ridondanti mantengo solo la stima massima e minima dell'asteroide in KM.
-\item Approach date: In format di data e epoch, vengono rimosse in quanto non utili al clustering
-\item Velocità relativa: In km/h, in km/s e in miles/h: Viene mantenuta solo la velocità in km/s
-\item Distanza mancante: In unità astronomica, kilometri, lunare e miglia. Viene mantanuta la distanza astronomicaz
-\item Pianeta orbitante: Contiene il valore terra per tutti i dati, id dell'orbita, giorno di verifica dell'orbita e incertezza dell'orbita e intersezione minima con le orbite
-\item Jupiter tisserand invariant: Descrive la dinamica orbitale dell'asteroide in ralazione a Jupyter, fornisce una misura del grado di stabilità dell'orbita, valori elevati indicano orbite stabili, basse instabili e soggette a perturbazioni.
-\item epoch osculation 
-\item eccentricity
-\item semi major axis
-\item inclination
-\item asc node longitude
-\item orbital period
-\item perihelion distance
-\item periohelion arg
-\item aphelion dist
-\item perihelion time
-\item mean nomaly
-\item mean motion
-\item equinox
-\item hazadous
+  \item \texttt{MoE\_clust}: Addestramento del modello tramite algoritmo EM/ECM. Il modello utilizzato è Gaussian Parsimonious Clustering Model (GPCM). Tramite le formule è possibile indicare i sottoinsiemi di feature da fornire a \texttt{gating} e \texttt{expert}.
+  \item \texttt{MoE\_stepwise}: Ricerca stepwise greedy per la model selection del modello migliore. Gli iperparametri ottimizzati sono il numero di esperti da generare e subset delle feature da utilizzare per esperti e gating. 
+  \item \texttt{MoE\_compare}: Confronto di diversi modelli MoE\_Clust
+  \item \texttt{MoE\_gpairs}: Visualizzazione della relazione pairwise delle variabili e dei risultati del clustering.
+  \item \texttt{MoEClust::predict}: Predizione del cluster su nuovi dati
 \end{itemize}
 
-\subsection{Rimozione feature}
+Maggiori dettagli su questa libreria sono forniti nella capitolo del clustering, dove questa viene utilizzata nell'esecuzione del progetto.
 
-```{r}
-eval = FALSE
+
+\section{Clustering asteroidi CNEOS}
+
+```{r, echo = FALSE, results='hide', include = FALSE, message = FALSE, cache=TRUE}
 library(readr)
 library(ggplot2)
 library(gpairs)
 library(GGally)
+library(MoEClust)
+library(caret)
+library(meteorits)
+library(mixtools)
+library(factoextra)
+library(cluster)
+library(knitr)
+```
 
+L'obiettivo del progettto è effettuare clustering e analisi dei dati tramite modelli mixture of experts sui dati degli asteroidi orbitanti la terra potenzialmente pericolosi. Si cerca di ottenere informazioni su possibili raggruppamenti degli asteroidi, in modo da fornire un tool per aiutare a classificare gli asteroidi in base alle loro caratteristiche orbitali e pericolosità. L'assegnazione di un gruppo di riferimento ad un asteroide può aiutare non solo a ritrovare asteroidi con caratteristiche simili ma anche a predire la possibile pericolosità di quest'ultimo.
+
+\subsection{Dataset - Asteroid NeoWs}
+
+Il dataset utilizzato è una raccolta di dati sugli asteroidi che si sono avvicinati o si avvicineranno all'orbita terrestre effettuata dal laboratorio NASA "Center for Near Earth Object Studies (\textbf{CNEOS})". Le informazioni vengono raccolte tramite \textbf{NeoWs} (NearEarthObject Web-Service) un servizio di API web che permette l'esecuzione di query per la ricerca e filtering degli asteroidi, il servizio fornisce anche un dataset con lo storico di tutti gli asterodi che si sono avvicinati all'orbita terrestre o che lo faranno nel futuro.
+
+```{r, cache=TRUE, message=FALSE}
+# Caricamento dataset
 nasa <- read_csv("data/nasa.csv")
+```
 
-dataset <- nasa[1:100, - (c((1:2), (6:11), (12:13), (15:16), (18:25), 27, 31,34, (36:39))), drop=FALSE]
+```{r, cache=TRUE}
+# Feature del dataset
+names(nasa)
+```
+
+
+Il dataset presenta 4687 datapoints ognuno descritto da 40 feature. Molte di queste feature sono coefficenti utilizzabili nelle equazioni di moto per predire il movimento e traiettoria dell'asteriode, molte di queste sono infatti facilemente ricostruibili a partire da altre feature presenti nel dataset, sono presenti inoltre molte feature ripetute con unità di misura diverse, risulta quindi necessaria una fase di rimozione e scelta delle feature più importanti.
+
+\subsection{Scelta e rimozione feature}
+
+Sulla base delle motivazioni descritte in precedenza, per migliorare la visulizzazione dei dati, dei risultati del clustering e velocizzare il processo di apprendimento vengono selezionate 13 feature dall'insieme di 40 feature del dataset origianale. Esempi di feature rimosse sono "Neo Reference ID" e "Name" che rappresentano l'ID dell'asteroide, la stima del diametro massima e minima in miglia, metri e piedi, lasciando solo l'informazione in chilometri. Vengono inoltre rimosse le informazioni riguardanti la data, in quanto non utili al clustering (ci interessano informazioni su orbita e pericolosità) e rimosse tutte le feature che presentano lo stesso valore per tutti i datapoint, come "Equinox" e "Orbiting Planet".
+
+```{r, warning=FALSE, cache=TRUE}
+# Funzione per la visualizzazione dei dati
+custom_plot_ggpairs <- function(dataset, columns){
+  g <- ggpairs(data=dataset,
+              columns = columns,
+              mapping = ggplot2::aes(colour = as.character(Hazardous), alpha=0.3)) +
+              scale_color_manual(values = c("cyan4", "darkorange1")) + 
+              scale_fill_manual(values = c("cyan4", "darkorange1"))
+  g
+}
+```
+
+Da una prima analisi della correlazione delle feature (la matrice di correlazione è troppo grande per essere visualizzata su questo documento, può essere consultata nella cartella \texttt{images\textbackslash corr\_plot.png}) si nota che le variabili di stima del diametro minima e massima hanno indice di correlazione pari a 1. Si è deciso di mantenere solo una delle due feature, la stima di distanza massima. Nei grafici a seguire il valore false e il suo colore associato (cyan) indica  un asteroide non pericoloso, il valore true (orange) ne indica invece uno pericoloso.
+
+
+
+
+
+
+```{r, cache=TRUE, fig.width=4,fig.height=2.3, fig.align='center'}
+# Correlazione tra stima di distanza minima e massima
+custom_plot_ggpairs(nasa[1:100,], c(4,5))
+```
+
+
+```{r, cache=TRUE}
+# Rimozione feature e creazione dataset finale
+dataset <- nasa[, - (c(1,2, 4, (6:11), (12:13), (15:16), (18:25), 
+                            27, 31,34, 36, 38, 39)), drop=FALSE]
+names(dataset) <- make.names(names(dataset))
 dataset$Hazardous <- as.numeric(as.logical(dataset$Hazardous))
 
 
+
 ```
 
-```{r}
-eval=FALSE
-cols <- character(nrow(dataset))
-cols[dataset$Hazardous == 0] <- "cyan4"
-cols[dataset$Hazardous == 1] <- "darkorange1"
+L'insieme delle feature scelte è il seguente: 
 
-plot(dataset[, c(1:6, 13)], col=cols)
-plot(dataset[, c(7:12, 13)], col=cols)
+\begin{itemize}[noitemsep,topsep=0pt,parsep=5pt,partopsep=0pt]
+\item \texttt{Absolute.Magnitude}: Misura della luminosità assoluta. Indica quanto luminoso sarebbe l'asteroide se fosse posizionato ad una distanza di 1 unità astronomica dal sole e dalla terra e riflettendo il 100\% della luce proiettata su esso.
+\item \texttt{Est.Dia.in.KM.max}: Stima del diametro massimo in Km.
+\item \texttt{Relative.Velocity.km.per.sec}: Velocità relativa in Km/s.
+\item \texttt{Miss.Dist..Astronomical}: Distanza dalla terra in unità astronomica cioè la distanza media tra il sole e la terra (circa 149.6 milioni di chilometri).
+\item \texttt{Jupiter.Tisserand.Invariant}: Unità per descrivere l'orbita dell'asteroide nel sistema solare rispetto all'orbita di Giove.
+\item \texttt{Eccentricity}: Unità per descrivere la forma dell'orbita dell'asteroide attorno al sole. Indica quanto è allungata o appiattita l'ellisse dell'orbita dell'asteroide.
+\item \texttt{Semi.Major.Axis}: Lunghezza del semi asse maggiore dell'asteroide
+\item \texttt{Inclination}: Angolo tra il piano del'orbita e il piano dell'ellittica (orbita della terra attorno al sole). Questa feature viene utilizzata per raggruppare gli asteroidi in famiglie orbitali in base a caratteristiche orbitali simili. Misura di come l'asteroide andrà ad interagire con altri corpi nello spazio in base alla sua orbita. 
+\item \texttt{Orbital.Period}: Tempo necessario per completare un orbita completa attorno alla terra. 
+\item \texttt{Perihelion.Distance}: Punto dell'orbita in cui l'asteroide si avvicina di più al sole. 
+\item \texttt{Aphelion.Dist}: Punto dell'orbita in cui l'asteroide si allontana di più dal sole. 
+\item \texttt{Mean Anomaly:}: Posizione dell'asteroide lungo la sua orbita, definita come l'angolo tra il perielio e la posizione dell'oggetto rispetto ad un punto di riferimento immaginario chiamato "punto vernal".
+\item \texttt{Hazardous}: Indica se l'asteroide è pericoloso o meno.
+\end{itemize}
+
+```{r, cache=TRUE, echo=FALSE}
+# Visualizzazione delle prime prime feature e dati del dataset
+kable(head(dataset[, c(1:6)]))
+kable(head(dataset[, c(7:12, 13)]))
+```
+ 
+\newpage
+
+
+\subsection{Analisi dei dati}
+
+Nella prima fase di sviluppo, prima di procedere alla fase di clustering eseguiamo un analisi della correlazione delle feature, questa fase ha come obiettivo individuare quelle feature che fungono da indicatore per la pericolosità dell'asteroide. Per facilitare la visualizzazione dei dati vengono mostrate le correlazioni prima delle variabili debolmente correalte, e successivamente le variabili fortemente correlate tra loro. Le immagini complete contenenti le correlazione per l'intero set di feature e sull'intero dataset sono presenti in \texttt{images\textbackslash corr\_plot\_full.png})
+
+
+```{r, warning=FALSE, echo=FALSE, results='hide', message=FALSE, cache=TRUE, fig.width=9,fig.height=4.3, fig.align='center'}
+custom_plot_ggpairs(dataset[1:200,], c(2,3,4,6,8,10, 13))
 ```
 
-```{r}
-eval = FALSE
-g1 <- ggpairs(data=dataset[, c(1:6, 13)], mapping=ggplot2::aes(colour = as.logical(Hazardous)),lower=list(combo=wrap("facethist",binwidth=1)))
+Da questo primo grafico non è possibile notare nessuna feature potenzialmente
+utilizzabile come feature preferenziale per la funzione di gating o esperto. 
+Nel secondo grafico invece, notiamo una tendenza negli asteroidi classificati 
+come pericolosi ad avere valori bassi di magnitudine assoluta e picchi più alti di
+anomalia media, gli asteroidi non pericolosi invece tendono a concentrarsi 
+su valori più bassi di periodo orbitale e distanza dall'phelieon e aphelion, 
+con valori alti della costante di tisserand.
 
-g1
+
+```{r, warning=FALSE, echo=FALSE, results='hide', message=FALSE, cache=TRUE, fig.width=9,fig.height=4.3, fig.align='center'}
+custom_plot_ggpairs(dataset[1:200,], c(1,5,7,9,11,12,13))
 ```
 
-```{r}
-eval=FALSE
-library(MoEClust)
-gating <- dataset$Hazardous
-mod1 <- MoE_stepwise(dataset, gating)
+\subsection{Clustering}
 
-mod1
+Nella fase di clustering verrà utilizzata la libreria MoEClust per eseguire il clustering
+degli asteroidi. Non è conosciuto il numero di cluster a priori quindi 
+verrà utilizzata la funzione \texttt{MoE\_stepwise} per effettuare una ottimizzazione
+di questo parametro. Sulla base della conoscenza acquisita nella fase di analisi
+vengono anche definiti 3 ulteriori modelli sulla base delle feature fornite al modello di gating:
+
+\begin{itemize}
+\item \texttt{model\_1} \texttt{Hazardous}, \texttt{Absolute.Magnitude} e \texttt{Orbital.Period}
+\item \texttt{model\_2}  \texttt{Hazardous},  \texttt{Absolute.Magnitude}, e \texttt{Jupyter.Tisserand.Invariant}
+\item \texttt{model\_3} \texttt{Absolute.Magnitude}, \texttt{Jupyter.Tisserand.Invariant}, e \texttt{Orbital.Period} 
+\item \texttt{model\_4} \texttt{Hazardous} e \texttt{Absolute.Magnitude}
+\end{itemize}
+
+Gli esperti verrano addestrati su tutte le varibili del modello, in quanto la divisione del feature space avverrà implicitamente tramite il modello di gating. Si fornisce alla maggior parte dei modelli custom la feature \texttt{Hazardous} in quanto si vuole suggerire una divisione con particolare attenzione alla pericolosità dell'asteroide. A causa delle limitazioni computazinali disponibili è stato selezionato un sample di 1500 datapoints a partire dal dataset per l'esecuzione dell'algoritmo.
+
+
+```{r ,warning=FALSE, cache=TRUE}
+set.seed(10)
+sample <- sample(1:nrow(dataset), replace=TRUE, size=1500)
+clustering_dataset <- dataset[sample,]
+
+
+model_1 <- MoE_clust(data = clustering_dataset,
+          G=2:4,
+          equalPro = FALSE,
+          gating = ~ Hazardous + Absolute.Magnitude + Orbital.Period,
+          network.data = clustering_dataset)
+
+model_2 <- MoE_clust(data = clustering_dataset,
+          G=2:4,
+          equalPro = FALSE,
+          gating = ~ Hazardous + Absolute.Magnitude + Jupiter.Tisserand.Invariant,
+          network.data = clustering_dataset)
+
+
+model_3 <- MoE_clust(data = clustering_dataset,
+          G=2:4,
+          equalPro = FALSE,
+          gating = ~ Absolute.Magnitude + Orbital.Period +
+            Jupiter.Tisserand.Invariant,
+          network.data = clustering_dataset)
+
+model_4 <- MoE_clust(data = clustering_dataset,
+          G=2:4,
+          equalPro = FALSE,
+          gating = ~ Hazardous + Absolute.Magnitude,
+          network.data = clustering_dataset)
+
+model <- MoE_clust(data = clustering_dataset,
+          G=2:4,
+          equalPro = FALSE)
+
+(optimized_models <- MoE_stepwise(clustering_dataset, initialG = 2, initalModel = model))
+
+```
+
+\subsection{Model selection}
+
+Una volta addestrati i modelli viene scelto il modello migliore sulla base del parametro "Baesyan Information Criterion" (BIC), un criterio di selezione che preferisce modelli con pochi parametri e più facilmente interpretabili, questa misura infatti tiene conto sia della precisione del modello sia il numero di parametri utilizzati. In generale si cerca di minimizzare il valore di BIC, ma la libreria MoEClust utilizza la definizione di BIC della libreria mcclust, che lo definisce come il negativo del valore BIC origianale. Verrà selezionato quindi il modello con il valore BIC più alto.
+
+
+
+```{r, warning=FALSE, cache=TRUE}
+custom <- MoE_compare(model_1, model_2, model_3, model_4, optimal.only = FALSE)
+stepwise <- MoE_compare(optimized_models, optimal.only = FALSE)
+
+plot(MoE_compare(custom, stepwise, optimal.only = FALSE), what="criterion")
+```
+Confrontati i modelli scegliamo quello migliore che risulta essere il modello custom che utilizza le varibaili \texttt{Hazardous},  \texttt{Absolute.Magnitude}, e \texttt{Jupyter.Tisserand.Invariant}. La fase di analisi è risultata quindi utile nel generare un modello più adeguato per il clustering dei dati. 
+
+```{r, warning=FALSE, cache=TRUE}
+
+best <- MoE_compare(custom, stepwise, optimal.only = FALSE)$optimal
+summary(best)
+```
+
+\subsection{Valutazione e risultati}
+
+Visualizziamo quindi nuovamente tutte le coppie di dati, mostrando inoltre ilcluster associato ad ognuno dei data point. L'immagine a più alta risoluzione è presente in \texttt{images\par cluster\_result.png}
+
+```{r, cache=TRUE}
+plot(best, what="gpairs", jitter=FALSE)
+```
+
+Andiamo quindi a valutare la bontà del clustering mostrando il valore di silhouette e peri data point di ogni cluster.
+
+```{r, cache=TRUE}
+sil <- silhouette(predict(best, clustering_dataset)$classification, dist(clustering_dataset))
+fviz_silhouette(sil)
+```
+
+Per fornire una migliore visualizzazione dei risultati del clustering, viene applicata una riduzione di dimensinoalità tramite PCA e visualizzati i cluster in due dimensioni
+
+
+```{r, cache=TRUE}
+data <- list(data = clustering_dataset, cluster=predict(best, clustering_dataset)$classification)
+
+fviz_cluster(data, ellipse.type = "norm")
+```
+Infine cerchiamo di mostrare le differenze principali tra i cluster, mostrando le differenze nella media del valore delle feature per ogni cluster. Andando a analizzare i valori dei vari cluster scopriamo le seguenti paricolarità:
+
+\begin{itemize}
+\item CLUSTER 1: Gli asteroidi appartenenti a questo cluster tendono ad essere di grandi dimensioni (alti valori del diametro), non provengono dalla cintura principale degli asteroidi ma da altre regioni del sistema solare (costante di tisserand mediamente bassa), hanno un orbita molto allungata e lontana dal sole (eccentricità alta), e che siano molto distanti e freddi (distanza da aphelion). Tutte queste variabili possono far pensare che l'asteroide provenga da un punto dello spazio chiamato "nube di Oort"
+
+\item CLUSTER 2: Asteroidi piccoli, provenienti dalla cintura principale, con un orbita circolare intorno al sole e una distanza molto vicina alla terra. Gli oggetti di questo tipo possono essere di tipologia Apollo Amor o Aten, tipologia di classificazione degli asteroidi in base alla loro orbita.
+
+\item CLUSTER 4: Gli asteroidi di questo cluster hanno caratteristiche simili a quelle degli asteroidi del primo cluster, ma a differenza di quest'ultimo sono molto più vicini all'orbita terrestre e con un orbita circolare e vicina al sole. Gli oggetti di questo tipo possono essere di tipologia Atira, sottocategoria di asteroidi Aten.
+
+\end{itemize}
+
+
+
+
+```{r, cache=TRUE, echo=FALSE}
+library(RColorBrewer)
+
+clusters <- factor(predict(best, clustering_dataset)$classification)
+clusters_points <- split(clustering_dataset, clusters)
+
+haz_distribution <- list()
+averages <- list()
+for (i in clusters_points){
+  haz_distribution <- append(haz_distribution, sum(i$Hazardous) / length(i$Hazardous))
+  averages <- rbind(averages, colMeans(i))
+}
+
+library(tidyr)
+library(ggplot2)
+df <- data.frame(averages)
+
+
+for (i in c(2,5,6,7,9,11)){
+  barplot(as.numeric(averages[, i]),
+          main = names(df)[i],
+          names.arg = levels(clusters),
+          xlab = "Value",
+          ylab = "Cluster",
+          col=brewer.pal(5, "Set2"),
+          horiz=TRUE
+          )
+   cat("<br><br>")
+  
+}
+
 ```
 
 
-```{r}
-(summ <- summary(mod1, classification=TRUE, parameters=FALSE, networks=TRUE))
-```
-
-```{r}
-eval = FALSE
-plot(mod1, what="gpairs", jitter=FALSE)
-```
-
-```{r}
-eval= FALSE
-library(MoEClust)
-library(caret)
-train_ind <- sample(1:nrow(dataset), 70)
-train_set <- dataset[train_ind, ]
-test_set <- dataset[-train_ind,, drop=FALSE]
-haz = train_set$Hazardous
-
-model <- MoE_clust(data = train_set, G=5, equalPro = FALSE, gating = ~ Hazardous, network.data = train_set)
-
-a <- predict(model, test_set[,], use.y = FALSE)[1:9]$MAPy[,13]
-
-a <- as.factor(as.numeric((a > 0.4)))
-b <- as.factor(test_set$Hazardous)
 
 
 
-example <- confusionMatrix(data=a, reference = b)
 
-example
-```
+
+
+
 
 ```{=tex}
 \newpage
